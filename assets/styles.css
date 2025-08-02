@@ -1,0 +1,56 @@
+:root {
+  --bg: #ffffff; --text: #111; --muted: #6b7280; --card: #f7f7f8;
+  --border: #e5e7eb; --accent: #2563eb; --accent-contrast: #fff; --hover: rgba(0,0,0,.06);
+}
+html[data-theme="dark"] {
+  --bg:#0b0f14; --text:#e5e7eb; --muted:#9aa4b2; --card:#11161d; --border:#1f2937;
+  --accent:#60a5fa; --accent-contrast:#0b0f14; --hover: rgba(255,255,255,.08);
+}
+*{box-sizing:border-box} html,body,#app{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.topbar{display:flex;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:20}
+.icon-btn{background:transparent;border:none;padding:6px;cursor:pointer;display:inline-flex;flex-direction:column;gap:3px}
+.icon-btn .bar{width:20px;height:2px;background:var(--text);display:block;border-radius:2px}
+.spacer{flex:1}
+.controls{display:flex;align-items:center;gap:8px}
+.chip{border:1px solid var(--border);background:var(--card);color:var(--text);padding:6px 10px;border-radius:999px;cursor:pointer}
+.menu{position:absolute;margin-top:6px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:6px;display:grid;gap:2px;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.menu-item{border:none;background:transparent;color:var(--text);text-align:left;padding:8px 10px;border-radius:8px;cursor:pointer}
+.menu-item:hover,.picker-item:hover{background:var(--hover)}
+.menu-item.active{font-weight:600}
+.sidebar{position:fixed;inset:0 40% 0 0;max-width:420px;background:var(--bg);transform:translateX(-100%);transition:transform .25s ease;z-index:30;border-right:1px solid var(--border)}
+.sidebar.open{transform:translateX(0)}
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:25}
+.sidebar-content{height:100%;display:flex;flex-direction:column}
+.sidebar-content h2{margin:16px}
+.faq{padding:0 16px;overflow:auto}
+details{padding:8px 0;border-bottom:1px dashed var(--border)}
+details summary{cursor:pointer;font-weight:600}
+.sidebar-footer{margin-top:auto;padding:16px;border-top:1px solid var(--border);background:var(--card)}
+.support-title{font-weight:700;margin-bottom:8px}
+.support-link{color:var(--accent);text-decoration:none;display:inline-block;margin-right:8px}
+.primary{background:var(--accent);color:var(--accent-contrast);border:none;padding:10px 14px;border-radius:12px;cursor:pointer}
+.primary:disabled{opacity:.6;cursor:not-allowed}
+.main{max-width:820px;margin:0 auto;padding:24px 16px 48px}
+.headline{text-align:center;font-size:24px;margin:16px 0 8px}
+.brand{font-weight:800;letter-spacing:.2px}
+.picker{display:grid;place-items:center;margin:12px 0 8px}
+.picker-btn{border:1px solid var(--border);background:var(--card);color:var(--text);padding:10px 12px;border-radius:12px;cursor:pointer;min-width:260px}
+.picker-menu{margin-top:8px;border:1px solid var(--border);border-radius:12px;background:var(--bg);box-shadow:0 8px 24px rgba(0,0,0,.12);overflow:hidden}
+.picker-item{display:block;width:100%;text-align:left;background:transparent;border:none;padding:12px 14px;cursor:pointer}
+.card{border:1px solid var(--border);background:var(--card);border-radius:16px;padding:16px;margin-top:12px}
+.placeholder{text-align:center;color:var(--muted)}
+.form-grid{display:grid;gap:12px}
+.row{display:grid;gap:10px}
+@media (min-width:640px){.row.cols-2{grid-template-columns:1fr 1fr}}
+.input,.select,.radio-group{display:grid;gap:6px}
+label{font-size:13px;color:var(--muted)}
+input[type=text],input[type=number],select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text)}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.radio-line{display:inline-flex;gap:8px;align-items:center}
+.radio-line input{margin-right:6px}
+.pay-area{display:grid;gap:8px;margin-top:12px}
+.hint{font-size:12px;color:var(--muted)}
+.mt-8{margin-top:8px}
+.mt-12{margin-top:12px}
+.hidden{display:none!important}

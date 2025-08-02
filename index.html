@@ -1,92 +1,99 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Telegram Mini App — Starter</title>
-    <!-- Официальный SDK Telegram Web Apps -->
+    <title>Тестмаркет — Mini App</title>
+    <meta name="color-scheme" content="light dark" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-      :root { color-scheme: light dark; }
-      html, body { height: 100%; }
-      body {
-        margin: 0; padding: 16px;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-        background: var(--tg-theme-bg-color, #ffffff);
-        color: var(--tg-theme-text-color, #111111);
-      }
-      h1 { margin-top: 0; font-size: 20px; }
-      .card {
-        border: 1px solid var(--tg-theme-hint-color, #ccc);
-        border-radius: 12px;
-        padding: 16px;
-        margin: 12px 0;
-      }
-      button {
-        font: inherit;
-        padding: 10px 14px;
-        border-radius: 10px;
-        border: none;
-        cursor: pointer;
-        background: var(--tg-theme-button-color, #2ea6ff);
-        color: var(--tg-theme-button-text-color, #ffffff);
-      }
-      code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 6px; }
-    </style>
+    <link rel="stylesheet" href="./assets/styles.css" />
   </head>
   <body>
-    <h1>Мини‑приложение готово</h1>
-    <div class="card">
-      <div id="hello">Проверка инициализации…</div>
-      <div id="params"></div>
+    <div id="app">
+      <header class="topbar">
+        <button id="burgerBtn" aria-label="menu" class="icon-btn" title="Меню">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </button>
+        <div class="spacer"></div>
+        <div class="controls">
+          <div class="lang">
+            <button id="langBtn" class="chip" title="Язык">RU ▾</button>
+            <div id="langMenu" class="menu" hidden>
+              <button class="menu-item active" data-lang="ru">Русский</button>
+            </div>
+          </div>
+          <div class="theme">
+            <button id="themeBtn" class="chip" title="Тема">Тема ▾</button>
+            <div id="themeMenu" class="menu" hidden>
+              <button class="menu-item" data-theme="light">Светлая</button>
+              <button class="menu-item" data-theme="dark">Тёмная</button>
+              <button class="menu-item" data-theme="auto">Авто</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <aside id="sidebar" class="sidebar" aria-hidden="true">
+        <div class="sidebar-content">
+          <h2>FAQ</h2>
+          <div class="faq">
+            <details>
+              <summary>Что такое Telegram Stars?</summary>
+              <p>Это внутренняя валюта Telegram для цифровых товаров.</p>
+            </details>
+            <details>
+              <summary>Как оплатить в TON?</summary>
+              <p>Сейчас заглушка. Позже подключим TON Connect.</p>
+            </details>
+            <details>
+              <summary>Как оплатить картой (RUB/USD/EUR)?</summary>
+              <p>Пока заглушка. Будет эквайринг в мини‑аппе.</p>
+            </details>
+            <details>
+              <summary>Сколько идёт зачисление?</summary>
+              <p>Обычно секунды, иногда до 10 минут.</p>
+            </details>
+            <details>
+              <summary>Оплатил, но не получил</summary>
+              <p>Проверьте историю. Если более 10 минут — напишите в поддержку.</p>
+            </details>
+          </div>
+          <div class="sidebar-footer">
+            <div class="support">
+              <div class="support-title">Контакты поддержки</div>
+              <a id="supportLink" href="#" class="support-link">@support_username</a>
+              <button id="supportBtn" class="primary">Написать в поддержку</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div id="backdrop" class="backdrop" hidden></div>
+
+      <main class="main">
+        <h1 class="headline">Добро пожаловать на <span class="brand">Тестмаркет</span></h1>
+
+        <section class="picker">
+          <button id="actionPicker" class="picker-btn" aria-expanded="false">
+            Выберите, что хотите сделать ▾
+          </button>
+          <div id="actionMenu" class="picker-menu" hidden>
+            <button class="picker-item" data-action="premium_buy">Купить Premium</button>
+            <button class="picker-item" data-action="stars_buy">Купить Stars</button>
+            <button class="picker-item" data-action="stars_sell">Продать Stars</button>
+          </div>
+        </section>
+
+        <section id="formArea" class="card placeholder">
+          <p>Выберите действие, чтобы продолжить.</p>
+        </section>
+
+        <section id="payArea" class="pay-area" hidden>
+          <button id="payBtn" class="primary" disabled>Оплатить</button>
+          <div class="hint">Кнопка «Оплатить» также появится в нижней панели Telegram.</div>
+        </section>
+      </main>
     </div>
 
-    <div class="card">
-      <p>Кнопки действий:</p>
-      <p>
-        <button id="btnMain">Показать Main Button</button>
-        <button id="btnClose">Закрыть Mini App</button>
-      </p>
-    </div>
-
-    <script>
-      const tg = window.Telegram.WebApp;
-      // Сообщаем Telegram, что приложение готово
-      tg.ready();
-      tg.expand();
-
-      // Приветствие
-      const u = tg.initDataUnsafe?.user;
-      const name = u ? (u.first_name + (u.last_name ? " " + u.last_name : "")) : "гость";
-      document.getElementById("hello").textContent = `Здравствуйте, ${name}!`;
-
-      // Чтение старт-параметра (?startapp=...)
-      const startParam = tg.initDataUnsafe?.start_param
-        ?? new URLSearchParams(location.search).get('tgWebAppStartParam');
-      document.getElementById("params").innerHTML =
-        "start_param: <code>" + (startParam ?? "—") + "</code>";
-
-      // Пример Main Button
-      const btnMain = document.getElementById("btnMain");
-      btnMain.addEventListener("click", () => {
-        tg.MainButton.setText("Готово ✅");
-        tg.MainButton.show();
-        tg.MainButton.onClick(() => {
-          tg.HapticFeedback.impactOccurred("light");
-          tg.close();
-        });
-      });
-
-      // Кнопка закрытия
-      document.getElementById("btnClose").addEventListener("click", () => tg.close());
-
-      // Дополнительно: подстройка темы
-      function applyTheme() {
-        document.body.style.background = getComputedStyle(document.body)
-          .getPropertyValue('--tg-theme-bg-color') || '#fff';
-      }
-      applyTheme();
-      tg.onEvent('themeChanged', applyTheme);
-    </script>
+    <script src="./assets/app.js"></script>
   </body>
 </html>
