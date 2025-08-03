@@ -32,3 +32,47 @@ input[type=text],input[type=number],select{width:100%;padding:9px 10px;border:1p
 input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .radio-line{display:inline-flex;gap:8px;align-items:center}.radio-line input{margin-right:6px}
 body,.app,.main,.center{max-width:100vw}
+/* ==== Softer animations override ==== */
+:root{
+  --dur-fast: .26s;   /* было ~.16s */
+  --dur: .30s;        /* было ~.22s */
+  --ease-soft: cubic-bezier(.22, .61, .36, 1); /* Natural easing */
+}
+
+/* Меню Язык/Тема */
+.menu{
+  transition:
+    transform var(--dur-fast) var(--ease-soft),
+    opacity   var(--dur-fast) var(--ease-soft) !important;
+}
+.menu[aria-open="true"]{
+  transform: scale(1) translateY(0) !important;
+  opacity: 1 !important;
+}
+
+/* Список действий */
+.picker-menu{
+  transition:
+    transform var(--dur-fast) var(--ease-soft),
+    opacity   var(--dur-fast) var(--ease-soft) !important;
+}
+.picker-menu[aria-open="true"]{
+  transform: scale(1) translateY(0) !important;
+  opacity: 1 !important;
+}
+
+/* Боковая панель */
+.sidebar{
+  transition: transform var(--dur) var(--ease-soft) !important;
+}
+.backdrop{
+  transition: opacity var(--dur-fast) var(--ease-soft) !important;
+}
+
+/* Кнопка выбора действия — чуть мягче нажатие */
+.picker-btn{ transition: transform .14s var(--ease-soft) !important; }
+
+/* Если у пользователя стоит “reduce motion” — убираем анимации */
+@media (prefers-reduced-motion: reduce){
+  *{ transition: none !important; animation: none !important; }
+}
