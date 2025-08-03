@@ -2,28 +2,29 @@
 <html lang="ru" data-theme="light">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <title>Тестмаркет — Mini App</title>
     <meta name="color-scheme" content="light dark" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="./assets/styles.css" />
   </head>
   <body>
-    <div id="app">
+    <div id="app" class="app">
       <header class="topbar">
         <button id="burgerBtn" aria-label="menu" class="icon-btn" title="Меню">
           <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>
         <div class="spacer"></div>
         <div class="controls">
-          <div class="lang">
-            <button id="langBtn" class="chip" title="Язык">RU ▾</button>
+          <div class="lang control">
+            <button id="langBtn" class="chip" title="Язык"><span id="langLabel">RU</span> ▾</button>
             <div id="langMenu" class="menu" hidden>
               <button class="menu-item active" data-lang="ru">Русский</button>
+              <button class="menu-item" data-lang="en">English</button>
             </div>
           </div>
-          <div class="theme">
-            <button id="themeBtn" class="chip" title="Тема">Тема ▾</button>
+          <div class="theme control">
+            <button id="themeBtn" class="chip" title="Тема"><span id="themeLabel">Тема</span> ▾</button>
             <div id="themeMenu" class="menu" hidden>
               <button class="menu-item" data-theme="light">Светлая</button>
               <button class="menu-item" data-theme="dark">Тёмная</button>
@@ -32,35 +33,39 @@
           </div>
         </div>
       </header>
-
       <aside id="sidebar" class="sidebar" aria-hidden="true">
         <div class="sidebar-content">
-          <h2>FAQ</h2>
-          <div class="faq">
+          <div class="sidebar-header">
+            <h2 id="faqTitle">FAQ</h2>
+            <button id="closeSidebar" class="icon-btn" aria-label="close">
+              <span class="bar x"></span><span class="bar x"></span>
+            </button>
+          </div>
+          <div id="faqList" class="faq scroll-area">
             <details>
-              <summary>Что такое Telegram Stars?</summary>
-              <p>Это внутренняя валюта Telegram для цифровых товаров.</p>
+              <summary id="q1">Что такое Telegram Stars?</summary>
+              <p id="a1">Внутренняя валюта Telegram для цифровых товаров. Вы выбираете услугу, оплачиваете и получаете результат прямо в Telegram.</p>
             </details>
             <details>
-              <summary>Как оплатить в TON?</summary>
-              <p>Сейчас заглушка. Позже подключим TON Connect.</p>
+              <summary id="q2">Как оплатить в TON?</summary>
+              <p id="a2">При выборе валюты TON появится кнопка «Оплатить». Сейчас действует заглушка: позже будет подключён TON Connect/кошельки.</p>
             </details>
             <details>
-              <summary>Как оплатить картой (RUB/USD/EUR)?</summary>
-              <p>Пока заглушка. Будет эквайринг в мини‑аппе.</p>
+              <summary id="q3">Как оплатить картой (RUB/USD/EUR)?</summary>
+              <p id="a3">Пока используется заглушка. В будущем будет подключён платёжный провайдер в мини‑приложении.</p>
             </details>
             <details>
-              <summary>Сколько идёт зачисление?</summary>
-              <p>Обычно секунды, иногда до 10 минут.</p>
+              <summary id="q4">Сколько времени занимает зачисление?</summary>
+              <p id="a4">Обычно несколько секунд после подтверждения платежа. В редких случаях — до 10 минут.</p>
             </details>
             <details>
-              <summary>Оплатил, но не получил</summary>
-              <p>Проверьте историю. Если более 10 минут — напишите в поддержку.</p>
+              <summary id="q5">Оплатил, но ничего не получил. Что делать?</summary>
+              <p id="a5">Проверьте историю операций. Если статуса нет более 10 минут — напишите в поддержку, указав ваш @username и время оплаты.</p>
             </details>
           </div>
-          <div class="sidebar-footer">
+          <div class="sidebar-footer fixed">
             <div class="support">
-              <div class="support-title">Контакты поддержки</div>
+              <div class="support-title" id="supportTitle">Контакты поддержки</div>
               <a id="supportLink" href="#" class="support-link">@support_username</a>
               <button id="supportBtn" class="primary">Написать в поддержку</button>
             </div>
@@ -68,32 +73,25 @@
         </div>
       </aside>
       <div id="backdrop" class="backdrop" hidden></div>
-
       <main class="main">
-        <h1 class="headline">Добро пожаловать на <span class="brand">Тестмаркет</span></h1>
-
-        <section class="picker">
-          <button id="actionPicker" class="picker-btn" aria-expanded="false">
-            Выберите, что хотите сделать ▾
-          </button>
-          <div id="actionMenu" class="picker-menu" hidden>
-            <button class="picker-item" data-action="premium_buy">Купить Premium</button>
-            <button class="picker-item" data-action="stars_buy">Купить Stars</button>
-            <button class="picker-item" data-action="stars_sell">Продать Stars</button>
-          </div>
-        </section>
-
-        <section id="formArea" class="card placeholder">
-          <p>Выберите действие, чтобы продолжить.</p>
-        </section>
-
-        <section id="payArea" class="pay-area" hidden>
-          <button id="payBtn" class="primary" disabled>Оплатить</button>
-          <div class="hint">Кнопка «Оплатить» также появится в нижней панели Telegram.</div>
-        </section>
+        <div class="center">
+          <h1 class="headline" id="welcomeTitle">Добро пожаловать на <span class="brand">Тестмаркет</span></h1>
+          <section class="picker">
+            <button id="actionPicker" class="picker-btn" aria-expanded="false">
+              <span id="pickerLabel">Выберите, что хотите сделать</span> ▾
+            </button>
+            <div id="actionMenu" class="picker-menu" hidden>
+              <button class="picker-item" data-action="premium_buy" id="actPremium">Купить Premium</button>
+              <button class="picker-item" data-action="stars_buy" id="actBuyStars">Купить Stars</button>
+              <button class="picker-item" data-action="stars_sell" id="actSellStars">Продать Stars</button>
+            </div>
+          </section>
+          <section id="formArea" class="card placeholder">
+            <p id="formPlaceholder">Выберите действие, чтобы продолжить.</p>
+          </section>
+        </div>
       </main>
     </div>
-
     <script src="./assets/app.js"></script>
   </body>
 </html>
