@@ -87,32 +87,42 @@
   function tx(){ return i18n[state.lang]||i18n.ru }
 
   function applyLang(l){
-    const t=tx(); state.lang=l; localStorage.setItem('tm_lang',l);
-    safe(el.langLabel,n=>n.textContent=t.lang);
-    safe(el.themeLabel,n=>n.textContent=t.theme);
-    safe(el.themeLight,n=>n.textContent=t.themeLight);
-    safe(el.themeDark,n=>n.textContent=t.themeDark);
-    safe(el.themeAuto,n=>n.textContent=t.themeAuto);
-    safe(el.langRu,n=>n.textContent=t.langRu);
-    safe(el.langEn,n=>n.textContent=t.langEn);
-    safe(el.welcomeTitle,n=>n.innerHTML=t.welcome);
-    safe(el.pickerLabel,n=>n.textContent=t.pick);
-    safe(el.actPremium,n=>n.textContent=t.actPremium);
-    safe(el.actBuyStars,n=>n.textContent=t.actBuyStars);
-    safe(el.actSellStars,n=>n.textContent=t.actSellStars);
-    safe(el.formPlaceholder,n=>n.textContent=t.placeholder);
-    // FAQ
-    safe(el.faqTitle,n=>n.textContent=t.faq);
-    safe(el.q1,n=>n.textContent=t.q1); safe(el.a1,n=>n.textContent=t.a1);
-    safe(el.q2,n=>n.textContent=t.q2); safe(el.a2,n=>n.textContent=t.a2);
-    safe(el.q3,n=>n.textContent=t.q3); safe(el.a3,n=>n.textContent=t.a3);
-    safe(el.q4,n=>n.textContent=t.q4); safe(el.a4,n=>n.textContent=t.a4);
-    safe(el.q5,n=>n.textContent=t.q5); safe(el.a5,n=>n.textContent=t.a5);
-    safe(el.supportTitle,n=>n.textContent=t.supportTitle);
-    safe(el.supportBtn,n=>n.textContent=t.writeSupport);
-    if(state.action) renderForm();
+  const tx = i18n[l] || i18n.ru;
+  state.lang = l;
+  localStorage.setItem('tm_lang', l);
+
+  // обновляем подписи
+  safeSet(el.langLabel,  n=> n.textContent = tx.lang);
+  safeSet(el.themeLabel, n=> n.textContent = tx.theme);
+  safeSet(el.themeLight, n=> n.textContent = tx.themeLight);
+  safeSet(el.themeDark,  n=> n.textContent = tx.themeDark);
+  safeSet(el.themeAuto,  n=> n.textContent = tx.themeAuto);
+
+  safeSet(el.welcomeTitle,   n=> n.innerHTML   = tx.welcome);
+  safeSet(el.pickerLabel,    n=> n.textContent = tx.pick);
+  safeSet(el.actPremium,     n=> n.textContent = tx.actPremium);
+  safeSet(el.actBuyStars,    n=> n.textContent = tx.actBuyStars);
+  safeSet(el.actSellStars,   n=> n.textContent = tx.actSellStars);
+  safeSet(el.formPlaceholder,n=> n.textContent = tx.placeholder);
+  safeSet(el.faqTitle,       n=> n.textContent = tx.faq);
+  safeSet(el.supportTitle,   n=> n.textContent = tx.supportTitle);
+  safeSet(el.supportBtn,     n=> n.textContent = tx.writeSupport);
+  safeSet(el.noticeText,     n=> n.textContent = tx.noticeTransfer);
+
+  // ВАЖНО: корректно выставляем lang у корневого тега
+  document.documentElement.setAttribute('lang', l);
+
+  // Пересобираем FAQ под язык
+  renderFAQ();
+
+  // Жёстко пересобираем текущую форму, чтобы не осталось старой разметки
+  const current = state.action;
+  if (current) {
+    state.action = null;       // сброс, чтобы selectAction не решил «ничего не менять»
+    selectAction(current);     // пересоздаёт форму с новым tx()
   }
-  applyLang(state.lang);
+}
+applyLang(state.lang);
 
   function openSidebar(open){
     if(open){ el.sidebar.classList.add('open'); el.sidebar.setAttribute('aria-hidden','false'); el.backdrop.hidden=false; el.backdrop.setAttribute('aria-open','true'); try{tg?.MainButton?.hide()}catch{}; if(!tg&&DEV_DEBUG) hideFakeMainButton(); }
