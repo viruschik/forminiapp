@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <title>Тестмаркет — Mini App</title>
+    <title>Тестмаркет — Mini App v3.1.1</title>
     <meta name="color-scheme" content="light dark" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="./assets/styles.css?v=2" />
+    <link rel="stylesheet" href="./assets/styles.css?v=3.1.1" />
   </head>
   <body>
     <div id="app" class="app">
@@ -19,20 +19,21 @@
           <div class="lang control">
             <button id="langBtn" class="chip" title="Язык"><span id="langLabel">RU</span> ▾</button>
             <div id="langMenu" class="menu" hidden>
-              <button class="menu-item active" data-lang="ru">Русский</button>
-              <button class="menu-item" data-lang="en">English</button>
+              <button class="menu-item active" data-lang="ru" id="langRu">Русский</button>
+              <button class="menu-item" data-lang="en" id="langEn">English</button>
             </div>
           </div>
           <div class="theme control">
             <button id="themeBtn" class="chip" title="Тема"><span id="themeLabel">Тема</span> ▾</button>
             <div id="themeMenu" class="menu" hidden>
-              <button class="menu-item" data-theme="light">Светлая</button>
-              <button class="menu-item" data-theme="dark">Тёмная</button>
-              <button class="menu-item" data-theme="auto">Авто</button>
+              <button class="menu-item" data-theme="light" id="themeLight">Светлая</button>
+              <button class="menu-item" data-theme="dark"  id="themeDark">Тёмная</button>
+              <button class="menu-item" data-theme="auto"  id="themeAuto">Авто</button>
             </div>
           </div>
         </div>
       </header>
+
       <aside id="sidebar" class="sidebar" aria-hidden="true">
         <div class="sidebar-content">
           <div class="sidebar-header">
@@ -41,41 +42,29 @@
               <span class="bar x"></span><span class="bar x"></span>
             </button>
           </div>
+
           <div id="faqList" class="faq scroll-area">
-            <details>
-              <summary id="q1">Что такое Telegram Stars?</summary>
-              <p id="a1">Внутренняя валюта Telegram для цифровых товаров. Вы выбираете услугу, оплачиваете и получаете результат прямо в Telegram.</p>
-            </details>
-            <details>
-              <summary id="q2">Как оплатить в TON?</summary>
-              <p id="a2">При выборе валюты TON появится кнопка «Оплатить». Сейчас действует заглушка: позже будет подключён TON Connect/кошельки.</p>
-            </details>
-            <details>
-              <summary id="q3">Как оплатить картой (RUB/USD/EUR)?</summary>
-              <p id="a3">Пока используется заглушка. В будущем будет подключён платёжный провайдер в мини‑приложении.</p>
-            </details>
-            <details>
-              <summary id="q4">Сколько времени занимает зачисление?</summary>
-              <p id="a4">Обычно несколько секунд после подтверждения платежа. В редких случаях — до 10 минут.</p>
-            </details>
-            <details>
-              <summary id="q5">Оплатил, но ничего не получил. Что делать?</summary>
-              <p id="a5">Проверьте историю операций. Если статуса нет более 10 минут — напишите в поддержку, указав ваш @username и время оплаты.</p>
-            </details>
+            <details><summary id="q1">Что такое Telegram Stars?</summary><p id="a1">Внутренняя валюта Telegram для цифровых товаров и сервисов.</p></details>
+            <details><summary id="q2">Как оплатить в TON?</summary><p id="a2">Пока заглушка. Позже подключим TON Connect / кошельки.</p></details>
+            <details><summary id="q3">Как оплатить картой?</summary><p id="a3">Сейчас заглушка. Будет подключён провайдер (эквайер) с 3‑D Secure.</p></details>
+            <details><summary id="q4">Сколько ждать зачисления?</summary><p id="a4">Обычно секунды; в исключениях — до 10 минут.</p></details>
+            <details><summary id="q5">Оплата прошла, но ничего не получил</summary><p id="a5">Напишите нам: укажите @username и время оплаты — разберёмся.</p></details>
           </div>
+
           <div class="sidebar-footer fixed">
             <div class="support">
               <div class="support-title" id="supportTitle">Контакты поддержки</div>
-              <a id="supportLink" href="#" class="support-link">@support_username</a>
               <button id="supportBtn" class="primary">Написать в поддержку</button>
             </div>
           </div>
         </div>
       </aside>
       <div id="backdrop" class="backdrop" hidden></div>
+
       <main class="main">
         <div class="center">
           <h1 class="headline" id="welcomeTitle">Добро пожаловать на <span class="brand">Тестмаркет</span></h1>
+
           <section class="picker">
             <button id="actionPicker" class="picker-btn" aria-expanded="false">
               <span id="pickerLabel">Выберите, что хотите сделать</span> ▾
@@ -86,12 +75,22 @@
               <button class="picker-item" data-action="stars_sell" id="actSellStars">Продать Stars</button>
             </div>
           </section>
+
           <section id="formArea" class="card placeholder">
             <p id="formPlaceholder">Выберите действие, чтобы продолжить.</p>
           </section>
+
+          <div id="toast" class="toast" hidden>
+            <div class="toast-body">
+              <button id="toastClose" class="icon-btn small" aria-label="close"><span class="bar x"></span><span class="bar x"></span></button>
+              <div id="toastText">Оплата на указанный адрес пройдёт в течение нескольких минут.</div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
-   <script src="./assets/app.js?v=2"></script>
+
+    <button id="fakeMainButton"></button>
+    <script src="./assets/app.js?v=3.1.1"></script>
   </body>
 </html>
