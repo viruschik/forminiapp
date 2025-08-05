@@ -3,10 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <title>Тестмаркет — Mini App v3.2.0</title>
+    <title>Тестмаркет — Mini App v3.2.3</title>
     <meta name="color-scheme" content="light dark" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="./assets/styles.css?v=3.2.0" />
+    <link rel="stylesheet" href="./assets/styles.css?v=3.2.3" />
+    <script src="./assets/app.js?v=3.2.3" defer></script>
   </head>
   <body>
     <div id="app" class="app">
@@ -34,7 +35,6 @@
         </div>
       </header>
 
-      <!-- Боковая панель (FAQ + поддержка) -->
       <aside id="sidebar" class="sidebar" aria-hidden="true">
         <div class="sidebar-content">
           <div class="sidebar-header">
@@ -43,10 +43,7 @@
               <span class="bar x"></span><span class="bar x"></span>
             </button>
           </div>
-
-          <!-- FAQ наполняется из i18n в app.js -->
           <div id="faqList" class="faq scroll-area"></div>
-
           <div class="sidebar-footer fixed">
             <div class="support">
               <div class="support-title" id="supportTitle">Контакты поддержки</div>
@@ -57,11 +54,9 @@
       </aside>
       <div id="backdrop" class="backdrop" hidden></div>
 
-      <!-- Основная область -->
       <main class="main">
         <div class="center">
           <h1 class="headline" id="welcomeTitle">Добро пожаловать на <span class="brand">Тестмаркет</span></h1>
-
           <section class="picker">
             <button id="actionPicker" class="picker-btn" aria-expanded="false">
               <span id="pickerLabel">Выберите, что хотите сделать</span> ▾
@@ -72,7 +67,6 @@
               <button class="picker-item" data-action="stars_sell" id="actSellStars">Продать Stars</button>
             </div>
           </section>
-
           <section id="formArea" class="card placeholder">
             <p id="formPlaceholder">Выберите действие, чтобы продолжить.</p>
           </section>
@@ -80,7 +74,6 @@
       </main>
     </div>
 
-    <!-- Информационная карточка после передачи звёзд -->
     <div id="notice" class="notice" hidden>
       <div class="notice-row">
         <div class="notice-text" id="noticeText">Оплата на указанный адрес пройдёт в течение нескольких минут.</div>
@@ -89,6 +82,5 @@
     </div>
 
     <button id="fakeMainButton"></button>
-    <script src="./assets/app.js?v=3.2.0"></script>
   </body>
 </html>
