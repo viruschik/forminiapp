@@ -1,3 +1,4 @@
+// v3.2.5 — fix "tx before initialization": define tx() early
 (function bootstrap(){
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bootstrap, { once:true });
@@ -10,41 +11,51 @@
   const MOCK = urlParams.get('mock') === '1';
   try { tg?.ready(); tg?.expand(); } catch {}
 
+  /* I18N */
   const i18n = {
     ru:{lang:'RU',theme:'Тема',themeLight:'Светлая',themeDark:'Тёмная',themeAuto:'Авто',welcome:'Добро пожаловать на <span class="brand">Тестмаркет</span>',pick:'Выберите, что хотите сделать',actPremium:'Купить Premium',actBuyStars:'Купить Stars',actSellStars:'Продать Stars',placeholder:'Выберите действие, чтобы продолжить.',toWhom:'Кому купить Premium',self:'Себе',other:'Другому',yourUsername:'Ваш username',username:'Username получателя (@username)',months:'Срок подписки',currency:'Валюта оплаты',price:'Цена',howManyBuy:'Сколько Stars купить',howManySell:'Сколько Stars продать',buyForWhom:'Кому купить Stars',minStarsHint:'Минимум 50 звёзд',payoutCurrency:'Валюта получения',payoutAddress:'Адрес для получения',currencyTON:'TON',currencyUSDT_TON:'USDT (TON)',totalPay:'Итог к оплате',youGet:'Вы получите',faq:'FAQ',supportTitle:'Контакты поддержки',writeSupport:'Написать в поддержку',errMinStars:'Минимальное количество 50 звёзд',errBadUsername:'Введите корректное имя пользователя',errPremiumActive:'Премиум уже активирован',errUserNotFound:'Пользователь не найден',noticeTransfer:'Оплата на указанный адрес пройдёт в течение нескольких минут.',btnPay:'Оплатить',btnTransfer:'Передать {n} звёзд'},
     en:{lang:'EN',theme:'Theme',themeLight:'Light',themeDark:'Dark',themeAuto:'Auto',welcome:'Welcome to <span class="brand">Testmarket</span>',pick:'Choose what you want to do',actPremium:'Buy Premium',actBuyStars:'Buy Stars',actSellStars:'Sell Stars',placeholder:'Select an action to continue.',toWhom:'Who will get Premium',self:'Myself',other:'Someone else',yourUsername:'Your username',username:'Recipient username (@username)',months:'Subscription period',currency:'Payment currency',price:'Price',howManyBuy:'How many Stars to buy',howManySell:'How many Stars to sell',buyForWhom:'Who will receive Stars',minStarsHint:'Minimum is 50 stars',payoutCurrency:'Payout currency',payoutAddress:'Payout address',currencyTON:'TON',currencyUSDT_TON:'USDT (TON)',totalPay:'Total to pay',youGet:'You will receive',faq:'FAQ',supportTitle:'Support contacts',writeSupport:'Message support',errMinStars:'Minimum amount is 50 stars',errBadUsername:'Please enter a valid username',errPremiumActive:'Premium already active',errUserNotFound:'User not found',noticeTransfer:'The payout to the specified address will be processed within a few minutes.',btnPay:'Pay',btnTransfer:'Transfer {n} stars'}
   };
-  const faqI18n={ru:[{q:'Что такое Telegram Stars?',a:'Внутренняя валюта Telegram для цифровых товаров и сервисов.'},{q:'Как оплатить в TON?',a:'Сейчас заглушка. Позже подключим TON Connect / кошельки.'},{q:'Как оплатить картой?',a:'Пока заглушка. Будет подключён провайдер (3-D Secure).'}, {q:'Сколько ждать зачисления?',a:'Обычно секунды; в редких случаях — до 10 минут.'},{q:'Оплата прошла, но ничего не получил',a:'Напишите нам: укажите @username и время оплаты — поможем.'}],en:[{q:'What are Telegram Stars?',a:'Telegram\\'s in-app currency for digital goods and services.'},{q:'How to pay with TON?',a:'Stub for now. We\\'ll add TON Connect / wallets later.'},{q:'How to pay by card?',a:'Stub. A 3-D Secure provider will be connected.'},{q:'How long does it take?',a:'Usually seconds; rarely up to 10 minutes.'},{q:'Payment done but received nothing',a:'Message us with your @username and payment time — we\\'ll help.'}]};
+  const faqI18n={ru:[{q:'Что такое Telegram Stars?',a:'Внутренняя валюта Telegram для цифровых товаров и сервисов.'},{q:'Как оплатить в TON?',a:'Сейчас заглушка. Позже подключим TON Connect / кошельки.'},{q:'Как оплатить картой?',a:'Пока заглушка. Будет подключён провайдер (3‑D Secure).'}, {q:'Сколько ждать зачисления?',a:'Обычно секунды; в редких случаях — до 10 минут.'},{q:'Оплата прошла, но ничего не получил',a:'Напишите нам: укажите @username и время оплаты — поможем.'}],en:[{q:"What are Telegram Stars?",a:"Telegram's in‑app currency for digital goods and services."},{q:"How to pay with TON?",a:"Stub for now. We'll add TON Connect / wallets later."},{q:"How to pay by card?",a:"Stub. A 3‑D Secure provider will be connected."},{q:"How long does it take?",a:"Usually seconds; rarely up to 10 minutes."},{q:"Payment done but received nothing",a:"Message us with your @username and payment time — we'll help."}]};
 
+  /* STATE & CONFIG */
   const state={action:null,theme:localStorage.getItem('tm_theme')||'light',lang:localStorage.getItem('tm_lang')||'ru',form:{}};
   const PRICES={premium:{'3':{TON:15,RUB:1290,USD:3.99,EUR:3.59,USDT_TON:3.99},'6':{TON:28,RUB:2490,USD:7.49,EUR:6.99,USDT_TON:7.49},'12':{TON:50,RUB:4590,USD:13.99,EUR:12.99,USDT_TON:13.99}},starBuyRate:{TON:.00002,RUB:.12,USD:.0025,EUR:.0023,USDT_TON:.0025},starSellRate:{TON:.000018,USDT_TON:.0022}};
   const API={checkUser:'/api/check-user',checkPremium:'/api/check-premium'};
 
+  /* define tx() EARLY */
+  const tx = ()=> (i18n[state.lang] || i18n.ru);
+
+  /* REFS */
   const $=(id)=>document.getElementById(id);
   const el={root:document.documentElement,burgerBtn:$('burgerBtn'),sidebar:$('sidebar'),backdrop:$('backdrop'),closeSidebar:$('closeSidebar'),langBtn:$('langBtn'),langLabel:$('langLabel'),langMenu:$('langMenu'),themeBtn:$('themeBtn'),themeLabel:$('themeLabel'),themeMenu:$('themeMenu'),themeLight:$('themeLight'),themeDark:$('themeDark'),themeAuto:$('themeAuto'),welcomeTitle:$('welcomeTitle'),pickerLabel:$('pickerLabel'),actionPicker:$('actionPicker'),actionMenu:$('actionMenu'),actPremium:$('actPremium'),actBuyStars:$('actBuyStars'),actSellStars:$('actSellStars'),formArea:$('formArea'),formPlaceholder:$('formPlaceholder'),faqTitle:$('faqTitle'),faqList:$('faqList'),supportTitle:$('supportTitle'),supportBtn:$('supportBtn'),notice:$('notice'),noticeText:$('noticeText'),noticeClose:$('noticeClose'),fakeBtn:$('fakeMainButton')};
 
+  // Declare fake MainButton early to avoid TDZ
+  let fakeBtn = null;
+
+
+  /* THEME/LANG */
   function applyTheme(t){state.theme=t;localStorage.setItem('tm_theme',t);if(t==='auto'){const d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;el.root.setAttribute('data-theme',d?'dark':'light');}else el.root.setAttribute('data-theme',t); try{const isDark=(el.root.getAttribute('data-theme')==='dark');tg?.setHeaderColor?.(isDark?'#0b0f14':'#ffffff');tg?.setBackgroundColor?.(isDark?'#0b0f14':'#ffffff');}catch{}}
   applyTheme(state.theme);
-
   function safeSet(node,setter){if(node)try{setter(node)}catch{}}
   function renderFAQ(){const list=faqI18n[state.lang]||faqI18n.ru;if(!el.faqList)return;el.faqList.innerHTML=list.map(i=>`<details><summary>${i.q}</summary><p>${i.a}</p></details>`).join('');}
-
-  function applyLang(l){const tx=i18n[l]||i18n.ru;state.lang=l;localStorage.setItem('tm_lang',l);
-    safeSet(el.langLabel,n=>n.textContent=tx.lang); safeSet(el.themeLabel,n=>n.textContent=tx.theme);
-    safeSet(el.themeLight,n=>n.textContent=tx.themeLight); safeSet(el.themeDark,n=>n.textContent=tx.themeDark); safeSet(el.themeAuto,n=>n.textContent=tx.themeAuto);
-    safeSet(el.welcomeTitle,n=>n.innerHTML=tx.welcome); safeSet(el.pickerLabel,n=>n.textContent=tx.pick);
-    safeSet(el.actPremium,n=>n.textContent=tx.actPremium); safeSet(el.actBuyStars,n=>n.textContent=tx.actBuyStars); safeSet(el.actSellStars,n=>n.textContent=tx.actSellStars);
-    safeSet(el.formPlaceholder,n=>n.textContent=tx.placeholder); safeSet(el.faqTitle,n=>n.textContent=tx.faq); safeSet(el.supportTitle,n=>n.textContent=tx.supportTitle); safeSet(el.supportBtn,n=>n.textContent=tx.writeSupport); safeSet(el.noticeText,n=>n.textContent=tx.noticeTransfer);
+  function applyLang(l){const t=i18n[l]||i18n.ru;state.lang=l;localStorage.setItem('tm_lang',l);
+    safeSet(el.langLabel,n=>n.textContent=t.lang); safeSet(el.themeLabel,n=>n.textContent=t.theme);
+    safeSet(el.themeLight,n=>n.textContent=t.themeLight); safeSet(el.themeDark,n=>n.textContent=t.themeDark); safeSet(el.themeAuto,n=>n.textContent=t.themeAuto);
+    safeSet(el.welcomeTitle,n=>n.innerHTML=t.welcome); safeSet(el.pickerLabel,n=>n.textContent=t.pick);
+    safeSet(el.actPremium,n=>n.textContent=t.actPremium); safeSet(el.actBuyStars,n=>n.textContent=t.actBuyStars); safeSet(el.actSellStars,n=>n.textContent=t.actSellStars);
+    safeSet(el.formPlaceholder,n=>n.textContent=t.placeholder); safeSet(el.faqTitle,n=>n.textContent=t.faq);
+    safeSet(el.supportTitle,n=>n.textContent=t.supportTitle); safeSet(el.supportBtn,n=>n.textContent=t.writeSupport); safeSet(el.noticeText,n=>n.textContent=t.noticeTransfer);
     document.documentElement.setAttribute('lang',l); renderFAQ();
     const current=state.action; state.action=null; if(current) selectAction(current); else renderForm();
   }
   applyLang(state.lang);
 
+  /* SIDEBAR */
   function openSidebar(open){if(open){el.sidebar?.classList.add('open');el.sidebar?.setAttribute('aria-hidden','false');if(el.backdrop){el.backdrop.hidden=false;el.backdrop.setAttribute('aria-open','true');}try{tg?.MainButton?.hide();tg?.MainButton?.offClick?.(payNow);}catch{} hideFakeMainButton();}else{el.sidebar?.classList.remove('open');el.sidebar?.setAttribute('aria-hidden','true');el.backdrop?.removeAttribute('aria-open');if(el.backdrop)el.backdrop.hidden=true;updateMainButton();}}
-  el.burgerBtn?.addEventListener('click',()=>openSidebar(true));
-  el.backdrop?.addEventListener('click',()=>openSidebar(false));
-  el.closeSidebar?.addEventListener('click',()=>openSidebar(false));
+  el.burgerBtn?.addEventListener('click',()=>openSidebar(true)); el.backdrop?.addEventListener('click',()=>openSidebar(false)); el.closeSidebar?.addEventListener('click',()=>openSidebar(false));
 
+  /* MENUS */
   function toggleMenu(menuEl,open){document.querySelectorAll('.menu').forEach(m=>{m.setAttribute('hidden','');m.removeAttribute('aria-open');});if(open){menuEl.removeAttribute('hidden');menuEl.setAttribute('aria-open','true');}}
   el.langBtn?.addEventListener('click',()=>{const isOpen=el.langMenu?.hasAttribute('aria-open');toggleMenu(el.langMenu,!isOpen)});
   el.themeBtn?.addEventListener('click',()=>{const isOpen=el.themeMenu?.hasAttribute('aria-open');toggleMenu(el.themeMenu,!isOpen)});
@@ -52,16 +63,18 @@
   el.langMenu?.addEventListener('click',(e)=>{const btn=e.target.closest('.menu-item');if(!btn)return;const l=btn.dataset.lang;if(l){el.langMenu.querySelectorAll('.menu-item').forEach(mi=>mi.classList.toggle('active',mi===btn));applyLang(l);toggleMenu(el.langMenu,false);}});
   el.themeMenu?.addEventListener('click',(e)=>{const btn=e.target.closest('.menu-item');if(!btn)return;const th=btn.dataset.theme;if(th){applyTheme(th);toggleMenu(el.themeMenu,false);}});
 
+  /* ACTION PICKER */
   function togglePicker(){const open=!el.actionMenu?.hasAttribute('aria-open');if(open){el.actionMenu.removeAttribute('hidden');el.actionMenu.setAttribute('aria-open','true');}else{el.actionMenu.removeAttribute('aria-open');el.actionMenu.setAttribute('hidden','');}}
   el.actionPicker?.addEventListener('click',togglePicker);
   el.actionMenu?.addEventListener('click',(e)=>{const it=e.target.closest('.picker-item');if(!it)return;selectAction(it.dataset.action);el.actionMenu.removeAttribute('aria-open');el.actionMenu.setAttribute('hidden','');});
 
   function selectAction(act){state.action=act;state.form={};renderForm();updateMainButton();}
-  const tx=()=> (i18n[state.lang]||i18n.ru);
 
-  async function apiCheckUser(username){const u=(username||'').trim();if(MOCK){await new Promise(r=>setTimeout(r,150));return{ok:true,exists:/^@?[a-zA-Z0-9_]{5,}$/.test(u)};}try{const r=await fetch('/api/check-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u})});return await r.json();}catch{return{ok:false,exists:false,error:true}}}
-  async function apiCheckPremium(username){const u=(username||'').trim();if(MOCK){await new Promise(r=>setTimeout(r,150));return{ok:true,active:false};}try{const r=await fetch('/api/check-premium',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u})});return await r.json();}catch{return{ok:false,active:false,error:true}}}
+  /* API mocks */
+  async function apiCheckUser(username){const u=(username||'').trim();if(MOCK){await new Promise(r=>setTimeout(r,150));return{ok:true,exists:/^@?[a-zA-Z0-9_]{5,}$/.test(u)};}try{const r=await fetch(API.checkUser,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u})});return await r.json();}catch{return{ok:false,exists:false,error:true}}}
+  async function apiCheckPremium(username){const u=(username||'').trim();if(MOCK){await new Promise(r=>setTimeout(r,150));return{ok:true,active:false};}try{const r=await fetch(API.checkPremium,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u})});return await r.json();}catch{return{ok:false,active:false,error:true}}}
 
+  /* FORMS */
   function renderForm(){const w=el.formArea;if(!w)return;w.classList.remove('placeholder');
     if(state.action==='premium_buy')w.innerHTML=premiumFormHTML();
     else if(state.action==='stars_buy')w.innerHTML=starsBuyFormHTML();
@@ -257,10 +270,11 @@
     }
   }
 
-  let fakeBtn=null;
+  /* MAIN BUTTON / FAKE */
+  
   function ensureFakeBtn(){if(fakeBtn)return fakeBtn; fakeBtn=el.fakeBtn||document.createElement('button'); fakeBtn.id='fakeMainButton'; document.body.appendChild(fakeBtn); fakeBtn.addEventListener('click',payNow); return fakeBtn;}
   function showFakeMainButton(text){const btn=ensureFakeBtn(); btn.textContent=text||tx().btnPay; btn.style.display='block';}
-  function hideFakeMainButton(){if(fakeBtn) fakeBtn.style.display='none';}
+  function hideFakeMainButton(){ if(!fakeBtn) return; fakeBtn.style.display='none'; }
 
   function updateMainButton(){const t=tx(); let ok=false,label=t.btnPay;
     if(state.action==='premium_buy'){const to=state.form.to||'self'; const usernameOk=(to==='self')||(/^@?[a-zA-Z0-9_]{5,}$/.test(document.getElementById('username')?.value||''));
@@ -275,19 +289,17 @@
       else if(DEV_DEBUG){ if(ok && el.sidebar?.getAttribute('aria-hidden')!=='false') showFakeMainButton(label); else hideFakeMainButton(); } }catch{}
   }
 
+  /* NOTICE + PAY */
   function showNotice(msg){if(!el.notice)return; el.noticeText.textContent=msg||tx().noticeTransfer; el.notice.removeAttribute('hidden');}
   el.noticeClose?.addEventListener('click',()=>el.notice?.setAttribute('hidden',''));
+  function payNow(){const {action,form}=state; if(!form) return; if(action==='stars_sell'){showNotice(tx().noticeTransfer);return;}
+    const summary={action,...form}; if(form.currency==='TON') alert((state.lang==='ru'?'Откроем TON-кошелёк (заглушка).':'Open TON wallet (stub).')+'\n\n'+JSON.stringify(summary,null,2));
+    else alert((state.lang==='ru'?'Откроем платёжную страницу (заглушка).':'Open payment page (stub).')+'\n\n'+JSON.stringify(summary,null,2)); }
 
-  function payNow(){const {action,form}=state; if(!form) return;
-    if(action==='stars_sell'){showNotice(tx().noticeTransfer);return;}
-    const summary={action,...form};
-    if(form.currency==='TON') alert((state.lang==='ru'?'Откроем TON-кошелёк (заглушка).':'Open TON wallet (stub).')+'\\n\\n'+JSON.stringify(summary,null,2));
-    else alert((state.lang==='ru'?'Откроем платёжную страницу (заглушка).':'Open payment page (stub).')+'\\n\\n'+JSON.stringify(summary,null,2));
-  }
-
+  /* SUPPORT */
   (function setupSupport(){let supportUsername='fightingkitty'; let supportUrl='https://t.me/'+supportUsername; try{const url=new URL(window.location.href); const sup=url.searchParams.get('support'); if(sup){supportUsername=sup.replace(/^@/,''); supportUrl='https://t.me/'+supportUsername;}}catch{} el.supportBtn?.addEventListener('click',()=>{ if(tg?.openTelegramLink) tg.openTelegramLink(supportUrl); else window.open(supportUrl,'_blank'); });})();
 
-  renderFAQ();
-  selectAction(null);
+  /* INIT */
+  renderFAQ(); selectAction(null);
   document.addEventListener('keydown',(e)=>{if(e.key==='Escape'){openSidebar(false);document.querySelectorAll('.menu').forEach(m=>{m.setAttribute('hidden','');m.removeAttribute('aria-open');});el.actionMenu?.setAttribute('hidden','');el.actionMenu?.removeAttribute('aria-open');}});
 })();
