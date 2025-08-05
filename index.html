@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <title>Тестмаркет — Mini App v3.1.1</title>
+    <title>Тестмаркет — Mini App v3.2.0</title>
     <meta name="color-scheme" content="light dark" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="./assets/styles.css?v=3.1.1" />
+    <link rel="stylesheet" href="./assets/styles.css?v=3.2.0" />
   </head>
   <body>
     <div id="app" class="app">
@@ -34,6 +34,7 @@
         </div>
       </header>
 
+      <!-- Боковая панель (FAQ + поддержка) -->
       <aside id="sidebar" class="sidebar" aria-hidden="true">
         <div class="sidebar-content">
           <div class="sidebar-header">
@@ -43,13 +44,8 @@
             </button>
           </div>
 
-          <div id="faqList" class="faq scroll-area">
-            <details><summary id="q1">Что такое Telegram Stars?</summary><p id="a1">Внутренняя валюта Telegram для цифровых товаров и сервисов.</p></details>
-            <details><summary id="q2">Как оплатить в TON?</summary><p id="a2">Пока заглушка. Позже подключим TON Connect / кошельки.</p></details>
-            <details><summary id="q3">Как оплатить картой?</summary><p id="a3">Сейчас заглушка. Будет подключён провайдер (эквайер) с 3‑D Secure.</p></details>
-            <details><summary id="q4">Сколько ждать зачисления?</summary><p id="a4">Обычно секунды; в исключениях — до 10 минут.</p></details>
-            <details><summary id="q5">Оплата прошла, но ничего не получил</summary><p id="a5">Напишите нам: укажите @username и время оплаты — разберёмся.</p></details>
-          </div>
+          <!-- FAQ наполняется из i18n в app.js -->
+          <div id="faqList" class="faq scroll-area"></div>
 
           <div class="sidebar-footer fixed">
             <div class="support">
@@ -61,6 +57,7 @@
       </aside>
       <div id="backdrop" class="backdrop" hidden></div>
 
+      <!-- Основная область -->
       <main class="main">
         <div class="center">
           <h1 class="headline" id="welcomeTitle">Добро пожаловать на <span class="brand">Тестмаркет</span></h1>
@@ -79,18 +76,19 @@
           <section id="formArea" class="card placeholder">
             <p id="formPlaceholder">Выберите действие, чтобы продолжить.</p>
           </section>
-
-          <div id="toast" class="toast" hidden>
-            <div class="toast-body">
-              <button id="toastClose" class="icon-btn small" aria-label="close"><span class="bar x"></span><span class="bar x"></span></button>
-              <div id="toastText">Оплата на указанный адрес пройдёт в течение нескольких минут.</div>
-            </div>
-          </div>
         </div>
       </main>
     </div>
 
+    <!-- Информационная карточка после передачи звёзд -->
+    <div id="notice" class="notice" hidden>
+      <div class="notice-row">
+        <div class="notice-text" id="noticeText">Оплата на указанный адрес пройдёт в течение нескольких минут.</div>
+        <button id="noticeClose" class="icon-btn" aria-label="close"><span class="bar x"></span><span class="bar x"></span></button>
+      </div>
+    </div>
+
     <button id="fakeMainButton"></button>
-    <script src="./assets/app.js?v=3.1.1"></script>
+    <script src="./assets/app.js?v=3.2.0"></script>
   </body>
 </html>

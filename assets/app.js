@@ -2,13 +2,14 @@
   const tg = window.Telegram?.WebApp;
   const urlParams = new URLSearchParams(location.search);
   const DEV_DEBUG = urlParams.get('debug') === '1';
+  const MOCK = urlParams.get('mock') === '1';
   try { tg?.ready(); tg?.expand(); } catch {};
 
   /* ================= I18N ================= */
   const i18n = {
     ru: {
       lang:'RU', theme:'Тема', themeLight:'Светлая', themeDark:'Тёмная', themeAuto:'Авто',
-      welcome:'Добро пожаловать на <span class="brand">Тестмаркет</span>',
+      welcome:'Добро пожаловать на <span class=\"brand\">Тестмаркет</span>',
       pick:'Выберите, что хотите сделать',
       actPremium:'Купить Premium', actBuyStars:'Купить Stars', actSellStars:'Продать Stars',
       placeholder:'Выберите действие, чтобы продолжить.',
@@ -17,6 +18,7 @@
       username:'Username получателя (@username)',
       months:'Срок подписки', currency:'Валюта оплаты', price:'Цена',
       howManyBuy:'Сколько Stars купить', howManySell:'Сколько Stars продать',
+      buyForWhom:'Кому купить Stars',
       minStarsHint:'Минимум 50 звёзд',
       payoutCurrency:'Валюта получения', payoutAddress:'Адрес для получения',
       currencyTON:'TON', currencyUSDT_TON:'USDT (TON)',
@@ -25,12 +27,13 @@
       errMinStars:'Минимальное количество 50 звёзд',
       errBadUsername:'Введите корректное имя пользователя',
       errPremiumActive:'Премиум уже активирован',
+      errUserNotFound:'Пользователь не найден',
       noticeTransfer:'Оплата на указанный адрес пройдёт в течение нескольких минут.',
       btnPay:'Оплатить', btnTransfer:'Передать {n} звёзд'
     },
     en: {
       lang:'EN', theme:'Theme', themeLight:'Light', themeDark:'Dark', themeAuto:'Auto',
-      welcome:'Welcome to <span class="brand">Testmarket</span>',
+      welcome:'Welcome to <span class=\"brand\">Testmarket</span>',
       pick:'Choose what you want to do',
       actPremium:'Buy Premium', actBuyStars:'Buy Stars', actSellStars:'Sell Stars',
       placeholder:'Select an action to continue.',
@@ -39,6 +42,7 @@
       username:'Recipient username (@username)',
       months:'Subscription period', currency:'Payment currency', price:'Price',
       howManyBuy:'How many Stars to buy', howManySell:'How many Stars to sell',
+      buyForWhom:'Who will receive Stars',
       minStarsHint:'Minimum is 50 stars',
       payoutCurrency:'Payout currency', payoutAddress:'Payout address',
       currencyTON:'TON', currencyUSDT_TON:'USDT (TON)',
@@ -47,6 +51,7 @@
       errMinStars:'Minimum amount is 50 stars',
       errBadUsername:'Please enter a valid username',
       errPremiumActive:'Premium already active',
+      errUserNotFound:'User not found',
       noticeTransfer:'The payout to the specified address will be processed within a few minutes.',
       btnPay:'Pay', btnTransfer:'Transfer {n} stars'
     }
@@ -56,16 +61,16 @@
     ru: [
       {q: 'Что такое Telegram Stars?', a: 'Внутренняя валюта Telegram для цифровых товаров и сервисов.'},
       {q: 'Как оплатить в TON?', a: 'Сейчас заглушка. Позже подключим TON Connect / кошельки.'},
-      {q: 'Как оплатить картой?', a: 'Пока заглушка. Будет подключён провайдер (3-D Secure).'},
+      {q: 'Как оплатить картой?', a: 'Пока заглушка. Будет подключён провайдер (3‑D Secure).'},
       {q: 'Сколько ждать зачисления?', a: 'Обычно секунды; в редких случаях — до 10 минут.'},
       {q: 'Оплата прошла, но ничего не получил', a: 'Напишите нам: укажите @username и время оплаты — поможем.'}
     ],
     en: [
-      {q: 'What are Telegram Stars?', a: 'Telegram\'s in-app currency for digital goods and services.'},
-      {q: 'How to pay with TON?', a: 'Currently a stub. We will add TON Connect / wallets later.'},
-      {q: 'How to pay by card?', a: 'Stub for now. A 3-D Secure provider will be connected.'},
-      {q: 'How long does it take?', a: 'Usually seconds; in rare cases up to 10 minutes.'},
-      {q: 'Payment done but received nothing', a: 'Message us with your @username and payment time — we will help.'}
+      {q: 'What are Telegram Stars?', a: 'Telegram\\'s in‑app currency for digital goods and services.'},
+      {q: 'How to pay with TON?', a: 'Stub for now. We\\'ll add TON Connect / wallets later.'},
+      {q: 'How to pay by card?', a: 'Stub. A 3‑D Secure provider will be connected.'},
+      {q: 'How long does it take?', a: 'Usually seconds; rarely up to 10 minutes.'},
+      {q: 'Payment done but received nothing', a: 'Message us with your @username and payment time — we\\'ll help.'}
     ]
   };
 
@@ -84,7 +89,12 @@
       '12': { TON:50, RUB:4590, USD:13.99, EUR:12.99, USDT_TON:13.99 }
     },
     starBuyRate:  { TON:.00002,  RUB:.12, USD:.0025, EUR:.0023, USDT_TON:.0025 },
-    starSellRate: { TON:.000018, USDT_TON:.0022 } // RUB удалён по твоему запросу
+    starSellRate: { TON:.000018, USDT_TON:.0022 }
+  };
+
+  const API = {
+    checkUser: '/api/check-user',       // POST {username}
+    checkPremium: '/api/check-premium', // POST {username} -> {active:bool}
   };
 
   /* ================= REFS ================= */
@@ -153,7 +163,6 @@
     const tx = i18n[l] || i18n.ru;
     state.lang = l; localStorage.setItem('tm_lang', l);
 
-    // labels
     safeSet(el.langLabel,  n=> n.textContent = tx.lang);
     safeSet(el.themeLabel, n=> n.textContent = tx.theme);
     safeSet(el.themeLight, n=> n.textContent = tx.themeLight);
@@ -174,9 +183,8 @@
     document.documentElement.setAttribute('lang', l);
     renderFAQ();
 
-    // перерисовать активную форму на новом языке
     const current = state.action;
-    state.action = null; // чтобы selectAction точно перерисовал
+    state.action = null;
     if (current) selectAction(current);
     else renderForm();
   }
@@ -253,6 +261,33 @@
   }
   function tx(){ return i18n[state.lang] || i18n.ru; }
 
+  /* =============== UTILS (API mocks) =============== */
+  async function apiCheckUser(username){
+    if (MOCK){
+      await new Promise(r=>setTimeout(r, 200));
+      // простая имитация: всё что короче 5 символов — not found
+      return { ok: /^@?[a-zA-Z0-9_]{5,}$/.test(username), exists: /^@?[a-zA-Z0-9_]{5,}$/.test(username) };
+    }
+    try{
+      const r = await fetch(API.checkUser, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username})});
+      return await r.json();
+    }catch{
+      return { ok:false, exists:false, error:true };
+    }
+  }
+  async function apiCheckPremium(username){
+    if (MOCK){
+      await new Promise(r=>setTimeout(r, 200));
+      return { ok:true, active:false };
+    }
+    try{
+      const r = await fetch(API.checkPremium, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username})});
+      return await r.json();
+    }catch{
+      return { ok:false, active:false, error:true };
+    }
+  }
+
   /* =============== FORMS =============== */
   function renderForm(){
     const w = el.formArea;
@@ -319,8 +354,24 @@
 
   function starsBuyFormHTML(){
     const t = tx();
+    const me = (tg?.initDataUnsafe?.user?.username) ? '@' + tg.initDataUnsafe.user.username : (state.lang==='ru' ? '(в Telegram)' : '(in Telegram)');
     return `
       <div class="form-grid">
+        <div class="row cols-2">
+          <div class="radio-group">
+            <label>${t.buyForWhom}</label>
+            <div class="radio-line">
+              <label><input type="radio" name="to" value="self" checked> ${t.self}</label>
+              <label><input type="radio" name="to" value="other"> ${t.other}</label>
+            </div>
+          </div>
+          <div class="input">
+            <label for="username">${t.username}</label>
+            <input id="username" type="text" placeholder="@username" disabled>
+            <div class="help" id="yourNameHint">${t.yourUsername}: ${me}</div>
+            <div class="error" id="userErr" hidden></div>
+          </div>
+        </div>
         <div class="row cols-2">
           <div class="input">
             <label for="starsAmount">${t.howManyBuy}</label>
@@ -373,6 +424,9 @@
   }
 
   function attachFormHandlers(){
+    // общая проверка username
+    function goodUsername(u){ return /^@?[a-zA-Z0-9_]{5,}$/.test(u||''); }
+
     if (state.action === 'premium_buy'){
       const radios   = document.querySelectorAll('input[name="to"]');
       const username = document.getElementById('username');
@@ -382,41 +436,28 @@
       const userErr  = document.getElementById('userErr');
       const yourHint = document.getElementById('yourNameHint');
 
-      function validateUsername(value){
-        if (!value || !/^@?[a-zA-Z0-9_]{5,}$/.test(value)) {
-          userErr.textContent = tx().errBadUsername;
-          userErr.hidden = false;
-          return false;
-        }
+      async function validateUserFlow(){
+        if (document.querySelector('input[name="to"]:checked')?.value !== 'other') { userErr.hidden = true; return true; }
+        const u = (username.value||'').trim();
+        if (!goodUsername(u)){ userErr.textContent = tx().errBadUsername; userErr.hidden = false; return false; }
         userErr.hidden = true;
-        return true;
-      }
-
-      async function checkPremiumActiveMock(un){
-        await new Promise(r=>setTimeout(r,120));
-        return false; // заглушка
-        // TODO: подключим реальный бекенд: return fetch('/api/checkPremium', { ... })
+        const chk = await apiCheckUser(u);
+        if (!chk.exists){ userErr.textContent = tx().errUserNotFound; userErr.hidden = false; return false; }
+        const prem = await apiCheckPremium(u);
+        if (prem.active){ userErr.textContent = tx().errPremiumActive; userErr.hidden = false; return false; }
+        userErr.hidden = true; return true;
       }
 
       radios.forEach(r=>r.addEventListener('change', async ()=>{
         const val = document.querySelector('input[name="to"]:checked').value;
         state.form.to = val;
-        if (username) username.disabled = (val!=='other');
-        if (val === 'self'){ userErr.hidden = true; if (yourHint) yourHint.style.display = 'block'; }
-        else { if (yourHint) yourHint.style.display = 'none'; }
+        username.disabled = (val!=='other');
+        if (val==='self'){ if (yourHint) yourHint.style.display='block'; userErr.hidden=true; }
+        else { if (yourHint) yourHint.style.display='none'; await validateUserFlow(); }
         updateMainButton();
       }));
 
-      username?.addEventListener('input', async ()=>{
-        state.form.username = username.value.trim();
-        const ok = validateUsername(state.form.username);
-        if (ok){
-          const active = await checkPremiumActiveMock(state.form.username);
-          if (active){ userErr.textContent = tx().errPremiumActive; userErr.hidden = false; }
-          else userErr.hidden = true;
-        }
-        updateMainButton();
-      });
+      username?.addEventListener('input', async ()=>{ await validateUserFlow(); updateMainButton(); });
 
       function recalcPrice(){
         const m   = state.form.months;
@@ -431,15 +472,38 @@
         }
         updateMainButton();
       }
-
       months?.addEventListener('change', ()=>{ state.form.months = months.value; recalcPrice(); });
       currency?.addEventListener('change', ()=>{ state.form.currency = currency.value; recalcPrice(); });
     }
 
     if (state.action === 'stars_buy'){
+      const radios   = document.querySelectorAll('input[name="to"]');
+      const username = document.getElementById('username');
       const amount   = document.getElementById('starsAmount');
       const currency = document.getElementById('currency');
       const priceLine= document.getElementById('priceLine');
+      const userErr  = document.getElementById('userErr');
+      const yourHint = document.getElementById('yourNameHint');
+
+      async function validateRecipient(){
+        const to = document.querySelector('input[name="to"]:checked')?.value || 'self';
+        if (to==='self'){ userErr.hidden=true; return true; }
+        const u = (username.value||'').trim();
+        if (!goodUsername(u)){ userErr.textContent = tx().errBadUsername; userErr.hidden = false; return false; }
+        userErr.hidden = true;
+        const chk = await apiCheckUser(u);
+        if (!chk.exists){ userErr.textContent = tx().errUserNotFound; userErr.hidden = false; return false; }
+        userErr.hidden = true; return true;
+      }
+
+      radios.forEach(r=>r.addEventListener('change', async ()=>{
+        const val = document.querySelector('input[name="to"]:checked').value;
+        state.form.to = val;
+        username.disabled = (val!=='other');
+        yourHint.style.display = (val==='self') ? 'block' : 'none';
+        await validateRecipient(); updateMainButton();
+      }));
+      username?.addEventListener('input', async ()=>{ await validateRecipient(); updateMainButton(); });
 
       function recalc(){
         const stars = parseInt(amount?.value ?? '0', 10) || 0;
@@ -510,7 +574,7 @@
       currency?.addEventListener('change', ()=>{
         state.form.currency = currency.value;
         if (addrRow){
-          addrRow.hidden = !state.form.currency; // показываем после выбора валюты
+          addrRow.hidden = !state.form.currency;
           if (addrInp){
             addrInp.placeholder = (state.form.currency==='TON')
               ? 'ton:// or 0:...'
@@ -546,14 +610,16 @@
 
     if (state.action === 'premium_buy'){
       const to = state.form.to || 'self';
-      const usernameOk = (to==='self') || (to==='other' && /^@?[a-zA-Z0-9_]{5,}$/.test(state.form.username||''));
+      const usernameOk = (to==='self') || (to==='other' && /^@?[a-zA-Z0-9_]{5,}$/.test(document.getElementById('username')?.value||''));
       ok = !!(usernameOk && state.form.months && state.form.currency && state.form.amount != null);
       if (ok) label = (state.lang==='ru') ? `Оплатить ${state.form.amount} ${String(state.form.currency).replace('_TON','')}`
                                           : `Pay ${state.form.amount} ${String(state.form.currency).replace('_TON','')}`;
     }
 
     if (state.action === 'stars_buy'){
-      ok = !!(state.form.stars > 0 && state.form.currency && state.form.amount != null);
+      const to = document.querySelector('input[name="to"]:checked')?.value || 'self';
+      const userOk = (to==='self') || /^@?[a-zA-Z0-9_]{5,}$/.test(document.getElementById('username')?.value||'');
+      ok = !!(userOk && state.form.stars > 0 && state.form.currency && state.form.amount != null);
       if (ok) label = (state.lang==='ru') ? `Оплатить ${state.form.amount} ${String(state.form.currency).replace('_TON','')}`
                                           : `Pay ${state.form.amount} ${String(state.form.currency).replace('_TON','')}`;
     }
@@ -596,15 +662,16 @@
     if (!form) return;
 
     if (action === 'stars_sell'){
-      showNotice(tx().noticeTransfer);
+      showNotice(tx().noticeTransfer);  // после приёма звёзд отправим выплату на адрес
       return;
     }
 
+    // Заглушка для остальных оплат
     const summary = { action, ...form };
     if (form.currency === 'TON')
-      alert((state.lang==='ru' ? 'Откроем TON-кошелёк (заглушка).' : 'Open TON wallet (stub).') + '\n\n' + JSON.stringify(summary, null, 2));
+      alert((state.lang==='ru' ? 'Откроем TON-кошелёк (заглушка).' : 'Open TON wallet (stub).') + '\\n\\n' + JSON.stringify(summary, null, 2));
     else
-      alert((state.lang==='ru' ? 'Откроем платёжную страницу (заглушка).' : 'Open payment page (stub).') + '\n\n' + JSON.stringify(summary, null, 2));
+      alert((state.lang==='ru' ? 'Откроем платёжную страницу (заглушка).' : 'Open payment page (stub).') + '\\n\\n' + JSON.stringify(summary, null, 2));
   }
 
   /* =============== SUPPORT BTN =============== */
@@ -624,7 +691,7 @@
 
   // init
   renderFAQ();
-  selectAction(null);
+  selectAction('premium_buy'); // стартовый экран
   document.addEventListener('keydown', (e)=>{
     if (e.key==='Escape'){
       openSidebar(false);
